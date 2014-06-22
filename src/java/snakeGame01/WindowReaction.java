@@ -1,8 +1,7 @@
 package snakeGame01;
 
 import javax.swing.*;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 
 public class WindowReaction extends JFrame implements WindowListener {
     private GameGUI gameGUI;
@@ -30,9 +29,7 @@ public class WindowReaction extends JFrame implements WindowListener {
             System.exit(0);
         } else {
             gameGUI.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-            if (gameGUI.getGameBefore() && !gameGUI.getGameOver()) {
-                gameGUI.startThread();
-            }
+            renewGame();
         }
     }
 
@@ -43,16 +40,12 @@ public class WindowReaction extends JFrame implements WindowListener {
 
     @Override
     public void windowIconified(WindowEvent e) {
-        if (gameGUI.getGameBefore() && !gameGUI.getGameOver()) {
-            gameGUI.stopThread();
-        }
+        renewGame();
     }
 
     @Override
     public void windowDeiconified(WindowEvent e) {
-        if (gameGUI.getGameBefore() && !gameGUI.getGameOver()) {
-            gameGUI.startThread();
-        }
+        renewGame();
     }
 
     @Override
@@ -61,6 +54,12 @@ public class WindowReaction extends JFrame implements WindowListener {
 
     @Override
     public void windowDeactivated(WindowEvent e) {
+    }
+
+    private void renewGame() {
+        if (gameGUI.getGameBefore() && !gameGUI.getGameOver()) {
+            gameGUI.startThread();
+        }
     }
 }
 

@@ -3,7 +3,9 @@ package snakeGame01;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.io.*;
 import java.util.*;
+import java.util.List;
 
 public class GameGUI extends JFrame implements KeyListener, Runnable {
 
@@ -18,20 +20,27 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
 
     private JPanel panelGame;
     private JPanel backgroundPanel;
+    private MenuBar menuBar;
     private final int WIDTH = 600;
     private final int HEIGHT = 400;
     private JButton buttonFruit;
-    private JButton[] buttonSnake = new JButton[1000];
-    private int score;
-    private final String scoreString = "Количество собранных фруктов: ";
+    private List<JButton> buttonsSnake;
+    private List<JButton> buttonsObstacle;
     private JLabel scoreLabel;
-    private int speed;
     private Thread thread;
     private Random random = new Random();
     private boolean gameOver;
     private boolean gameBefore;
+    private final String scoreString = "Количество собранных фруктов: ";
+    private final String images = "C:/home/malyshkina/SnakeGame/background/";
+    private final String fileName = "C:/home/malyshkina/SnakeGame/results.txt";
+    private List<String> listResults = new ArrayList<String>();
+    private int speed;
     private String imageString;
-    private final String images = "C:/home/malyshkina/term4/lang/background/";
+    private int score;
+    private String level;
+    private String variant;
+    private String[] variantAsArray;
     private Color colorBackground;
 
     private void initializeValues() {
@@ -39,8 +48,16 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         if (getSpeed() == 0) {
             setSpeed(100);
         }
+        if (getLevel() == null) {
+            setLevel("Любитель");
+        }
+        if (getVariant() == null) {
+            setVariant("Без препятствий");
+        }
         this.gameOver = false;
         this.gameBefore = false;
+        this.buttonsSnake = new ArrayList<JButton>();
+        this.buttonsObstacle = new ArrayList<JButton>();
         this.fruit = new Fruit();
         this.snake = new Snake();
     }
@@ -51,8 +68,9 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         addWindowListener(new WindowReaction(this));
         setResizable(false);
         setBounds(200, 200, 606, 480);
-        MenuBar menuBar = new MenuBar(this);
+        this.menuBar = new MenuBar(this, listResults);
         setJMenuBar(menuBar.createBar());
+        readFile();
         this.panelGame = new JPanel();
         panelGame.setLayout(null);
         panelGame.setBounds(0, 0, WIDTH, HEIGHT);
@@ -87,6 +105,7 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         panelGame.removeAll();
         initializeValues();
         createFirstSnake();
+        createObstacle();
         changeBackground();
         scoreLabel.setText(scoreString + getScore());
         scoreLabel.setForeground(Color.black);
@@ -97,54 +116,63 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
 
     private void createFirstSnake() {
         for (int i = 0; i < 3; i++) {
-            buttonSnake[i] = new JButton();
-            buttonSnake[i].setBackground(Color.white);
-            buttonSnake[i].setBorder(BorderFactory.createLineBorder(Color.black));
-            buttonSnake[i].setEnabled(false);
-            panelGame.add(buttonSnake[i]);
-            buttonSnake[i].setBounds(snake.x[i], snake.y[i], 10, 10);
+            buttonsSnake.add(i, new JButton());
+            if (i == 0) {
+                buttonsSnake.get(i).setBackground(new Color(255, 110, 40));
+                buttonsSnake.get(i).setBorder(BorderFactory.createLineBorder(new Color(255, 110, 40)));
+            } else {
+                if (i == 1) {
+                    buttonsSnake.get(i).setBackground(new Color(255, 150, 40));
+                    buttonsSnake.get(i).setBorder(BorderFactory.createLineBorder(new Color(255, 150, 40)));
+                } else {
+                    buttonsSnake.get(i).setBackground(new Color(255, 200, 40));
+                    buttonsSnake.get(i).setBorder(BorderFactory.createLineBorder(new Color(255, 200, 40)));
+                }
+            }
+            buttonsSnake.get(i).setEnabled(false);
+            panelGame.add(buttonsSnake.get(i));
+            buttonsSnake.get(i).setBounds(snake.x[i], snake.y[i], 10, 10);
             snake.x[i + 1] = snake.x[i] - 10;
             snake.y[i + 1] = snake.y[i];
         }
     }
 
-    private void growUp() {
-        buttonSnake[snake.getLength()] = new JButton();
-        buttonSnake[snake.getLength()].setBackground(Color.white);
-        buttonSnake[snake.getLength()].setBorder(BorderFactory.createLineBorder(Color.black));
-        buttonSnake[snake.getLength()].setEnabled(false);
-        panelGame.add(buttonSnake[snake.getLength()]);
-        buttonSnake[snake.getLength()].setBounds(snake.getPointSnake()[snake.getLength() - 1].x, snake.getPointSnake()[snake.getLength() - 1].y, 10, 10);
-        snake.setLength(snake.getLength() + 1);
-    }
-
-    private void move() {
-        for (int i = 0; i < snake.getLength(); i++) {
-            snake.getPointSnake()[i] = buttonSnake[i].getLocation();
+    private void createObstacle() {
+        if (getVariantAsArray() != null) {
+            String[] variant1 = getVariantAsArray();
+            String line;
+            for (int y = 0; y < variant1.length; y++) {
+                line = variant1[y];
+                for (int x = 0; x < line.length(); x++) {
+                    if (line.charAt(x) == '1') {
+                        JButton button = new JButton();
+                        button.setBackground(getColorObstacle());
+                        button.setBorder(BorderFactory.createLineBorder(getColorObstacle()));
+                        button.setEnabled(false);
+                        buttonsObstacle.add(button);
+                        panelGame.add(button);
+                        button.setBounds(x * 10, y * 10, 10, 10);
+                    }
+                }
+            }
         }
-        snake.x[0] += snake.getDirectionX();
-        snake.y[0] += snake.getDirectionY();
-        buttonSnake[0].setBounds(snake.x[0], snake.y[0], 10, 10);
-
-        for (int i = 1; i < snake.getLength(); i++) {
-            buttonSnake[i].setLocation(snake.getPointSnake()[i - 1]);
-        }
-        createFruit();
-        runFruit();
-        runWall();
-        runSnake();
-        panelGame.repaint();
     }
 
     private void createFruit() {
         if (!fruit.isFruit()) {
             panelGame.add(buttonFruit);
             buttonFruit.setBounds((10 * random.nextInt(60)), (10 * random.nextInt(40)), 10, 10);
-            buttonFruit.setBackground(Color.white);
-            buttonFruit.setBorder(BorderFactory.createLineBorder(Color.black));
+            buttonFruit.setBackground(getColorFruit());
+            buttonFruit.setBorder(BorderFactory.createLineBorder(getColorFruit()));
             for (int i = 0; i < snake.getLength(); i++) {
-                if (buttonSnake[i].getX() == buttonFruit.getX() && buttonSnake[i].getY() == buttonFruit.getY()
-                        || buttonFruit.getX() == WIDTH || buttonFruit.getX() == 0 || buttonFruit.getY() == HEIGHT || buttonFruit.getY() == 0) {
+                if (buttonsSnake.get(i).getX() == buttonFruit.getX() && buttonsSnake.get(i).getY() == buttonFruit.getY()) {
+                    panelGame.remove(buttonFruit);
+                    createFruit();
+                    break;
+                }
+            }
+            for (JButton buttonObstacle : buttonsObstacle) {
+                if (buttonObstacle.getX() == buttonFruit.getX() && buttonObstacle.getY() == buttonFruit.getY()) {
                     panelGame.remove(buttonFruit);
                     createFruit();
                     break;
@@ -153,6 +181,35 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
             fruit.setPoint(buttonFruit.getLocation());
             fruit.setFruit(true);
         }
+    }
+
+    private void growUp() {
+        buttonsSnake.add(snake.getLength(), new JButton());
+        buttonsSnake.get(snake.getLength()).setBackground(getColorSnake());
+        buttonsSnake.get(snake.getLength()).setBorder(BorderFactory.createLineBorder(getColorSnake()));
+        buttonsSnake.get(snake.getLength()).setEnabled(false);
+        panelGame.add(buttonsSnake.get(snake.getLength()));
+        buttonsSnake.get(snake.getLength()).setBounds(snake.getPointSnake().get(snake.getLength() - 1).x, snake.getPointSnake().get(snake.getLength() - 1).y, 10, 10);
+        snake.setLength(snake.getLength() + 1);
+    }
+
+    private void move() {
+        for (int i = 0; i < snake.getLength(); i++) {
+            snake.getPointSnake().add(i, buttonsSnake.get(i).getLocation());
+        }
+        snake.x[0] += snake.getDirectionX();
+        snake.y[0] += snake.getDirectionY();
+        buttonsSnake.get(0).setBounds(snake.x[0], snake.y[0], 10, 10);
+
+        for (int i = 1; i < snake.getLength(); i++) {
+            buttonsSnake.get(i).setLocation(snake.getPointSnake().get(i - 1));
+        }
+        createFruit();
+        runFruit();
+        runWall();
+        runSnake();
+        runObstacle();
+        panelGame.repaint();
     }
 
     private void runFruit() {
@@ -178,7 +235,18 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
 
     private void runSnake() {
         for (int i = 1; i < snake.getLength(); i++) {
-            if (buttonSnake[i].getX() == snake.x[0] && buttonSnake[i].getY() == snake.y[0]) {
+            if (buttonsSnake.get(i).getX() == snake.x[0] && buttonsSnake.get(i).getY() == snake.y[0]) {
+                messageGameOver();
+                stopThread();
+                break;
+            }
+        }
+    }
+
+    private void runObstacle() {
+        for (JButton buttonObstacle : buttonsObstacle) {
+            if (buttonObstacle.getX() == snake.x[0] && buttonObstacle.getY() == snake.y[0]) {
+                panelGame.remove(buttonsSnake.get(0));
                 messageGameOver();
                 stopThread();
                 break;
@@ -210,13 +278,13 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
 
     private void messageGameOver() {
         setGameOver(true);
-        new GameOverDialog(this);
+        new GameOverDialog(this, fileName, menuBar.getListResults());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     }
 
     private void changeBackground() {
         if (getImageString() == null && getColorBackground() == null) {
-            panelGame.setBackground(new Color(0, 0, 0));
+            panelGame.setBackground(Color.black);
             panelGame.setOpaque(true);
         } else {
             if (getImageString() == null) {
@@ -234,7 +302,19 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         }
     }
 
-    private int getSpeed() {
+    private Color getColorFruit() {
+        return new Color(193, 0, 0);
+    }
+
+    private Color getColorObstacle() {
+        return new Color(255, 90, 0);
+    }
+
+    private Color getColorSnake() {
+        return new Color(255, 255, 40);
+    }
+
+    int getSpeed() {
         return speed;
     }
 
@@ -286,9 +366,32 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         this.colorBackground = color;
     }
 
+    private String[] getVariantAsArray() {
+        return variantAsArray;
+    }
+
+    void setVariantAsArray(String[] variantAsArray) {
+        this.variantAsArray = variantAsArray;
+    }
+
+    String getVariant() {
+        return variant;
+    }
+
+    void setVariant(String variant) {
+        this.variant = variant;
+    }
+
+    String getLevel() {
+        return level;
+    }
+
+    void setLevel(String level) {
+        this.level = level;
+    }
 
     public void keyPressed(KeyEvent e) {
-        if (buttonSnake[0] != null) {
+        if (buttonsSnake.get(0) != null) {
             snake.pressing(e);
         }
     }
@@ -298,7 +401,37 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
 
     public void keyTyped(KeyEvent e) {
     }
+
+    private void readFile() {
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName));
+            try {
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    listResults.add(line);
+                }
+            } finally {
+                bufferedReader.close();
+            }
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
+
+    void rewriteFile() {
+        try {
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(fileName));
+            try {
+                for (String s : menuBar.getListResults()) {
+                    bufferedWriter.write(s);
+                    bufferedWriter.write("\n");
+                    System.out.println(s);
+                }
+            } finally {
+                bufferedWriter.close();
+            }
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
 }
-
-
-

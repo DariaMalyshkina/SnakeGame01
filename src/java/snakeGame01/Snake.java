@@ -2,9 +2,11 @@ package snakeGame01;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.*;
+import java.util.List;
 
 public class Snake {
-    private Point[] pointSnake = new Point[1000];
+    private List<Point> pointSnake;
     private int length;
     private boolean left;
     private boolean right;
@@ -12,10 +14,11 @@ public class Snake {
     private boolean down;
     private int directionX;
     private int directionY;
-    public int[] x = new int[600];
-    public int[] y = new int[400];
+    public int[] x ;
+    public int[] y ;
 
     public Snake() {
+        this.pointSnake = new ArrayList<Point>();
         this.left = false;
         this.right = true;
         this.up = true;
@@ -78,7 +81,7 @@ public class Snake {
         this.length = length;
     }
 
-    public Point[] getPointSnake() {
+    public List<Point> getPointSnake() {
         return pointSnake;
     }
 
