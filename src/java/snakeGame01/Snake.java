@@ -14,8 +14,8 @@ public class Snake {
     private boolean down;
     private int directionX;
     private int directionY;
-    public int[] x ;
-    public int[] y ;
+    public int[] x = new int[600];
+    public int[] y = new int[400];
 
     public Snake() {
         this.pointSnake = new ArrayList<Point>();
@@ -26,7 +26,7 @@ public class Snake {
         this.directionX = 10;
         this.directionY = 0;
         this.length = 3;
-        this.x[0] = 100;
+        this.x[0] = 60;
         this.y[0] = 200;
     }
 

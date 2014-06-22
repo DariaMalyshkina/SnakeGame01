@@ -17,10 +17,10 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
 
     private Fruit fruit;
     private Snake snake;
+    private MenuBar menuBar;
 
     private JPanel panelGame;
     private JPanel backgroundPanel;
-    private MenuBar menuBar;
     private final int WIDTH = 600;
     private final int HEIGHT = 400;
     private JButton buttonFruit;
@@ -41,7 +41,6 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
     private String level;
     private String variant;
     private String[] variantAsArray;
-    private Color colorBackground;
 
     private void initializeValues() {
         setScore(0);
@@ -54,8 +53,7 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         if (getVariant() == null) {
             setVariant("Без препятствий");
         }
-        this.gameOver = false;
-        this.gameBefore = false;
+        setGameOver(false);
         this.buttonsSnake = new ArrayList<JButton>();
         this.buttonsObstacle = new ArrayList<JButton>();
         this.fruit = new Fruit();
@@ -95,6 +93,7 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         getContentPane().add(panelGame);
         getContentPane().add(panelScore);
         addKeyListener(this);
+        setGameBefore(false);
     }
 
     void newGame() {
@@ -283,22 +282,17 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
     }
 
     private void changeBackground() {
-        if (getImageString() == null && getColorBackground() == null) {
-            panelGame.setBackground(Color.black);
+        if (getImageString() == null) {
+            panelGame.setBackground(getColorBackground());
             panelGame.setOpaque(true);
         } else {
-            if (getImageString() == null) {
-                panelGame.setBackground(getColorBackground());
-                panelGame.setOpaque(true);
-            } else {
-                Background background = new Background(getImageString());
-                background.setSize(WIDTH, HEIGHT);
-                backgroundPanel.add(background);
-                backgroundPanel.removeAll();
-                backgroundPanel.add(background);
-                getContentPane().add(backgroundPanel);
-                panelGame.setOpaque(false);
-            }
+            Background background = new Background(getImageString());
+            background.setSize(WIDTH, HEIGHT);
+            backgroundPanel.add(background);
+            backgroundPanel.removeAll();
+            backgroundPanel.add(background);
+            getContentPane().add(backgroundPanel);
+            panelGame.setOpaque(false);
         }
     }
 
@@ -312,6 +306,10 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
 
     private Color getColorSnake() {
         return new Color(255, 255, 40);
+    }
+
+    private Color getColorBackground() {
+        return new Color(0, 128, 0);
     }
 
     int getSpeed() {
@@ -358,14 +356,6 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
         return images;
     }
 
-    private Color getColorBackground() {
-        return colorBackground;
-    }
-
-    void setColorBackground(Color color) {
-        this.colorBackground = color;
-    }
-
     private String[] getVariantAsArray() {
         return variantAsArray;
     }
@@ -391,7 +381,7 @@ public class GameGUI extends JFrame implements KeyListener, Runnable {
     }
 
     public void keyPressed(KeyEvent e) {
-        if (buttonsSnake.get(0) != null) {
+        if (getGameBefore()) {
             snake.pressing(e);
         }
     }

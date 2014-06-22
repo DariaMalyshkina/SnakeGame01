@@ -14,6 +14,6 @@ public class Gamer {
     }
 
     public String getStringGamer() {
-        return name + " " + score + " баллов (Уровень " + level + ", " + obstacle+")";
+        return name + " " + score + " баллов (Уровень " + level + ", " + obstacle + ")";
     }
 }

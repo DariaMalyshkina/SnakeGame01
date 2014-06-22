@@ -80,9 +80,9 @@ public class MenuBar extends JFrame {
 
     private void messageNewGame() {
         final JDialog dialog = new JDialog(gameGUI, "Вы уверены?", true);
-        dialog.setSize(400, 120);
+        dialog.setSize(320, 120);
         JLabel labelExit = new JLabel("Вы уверены, что хотите начать новую игру?");
-        labelExit.setBorder(new EmptyBorder(10, 50, 0, 0));
+        labelExit.setBorder(new EmptyBorder(10, 20, 0, 0));
         JButton yes = new JButton("Да");
         JButton no = new JButton("Нет");
         yes.addActionListener(new ActionListener() {
@@ -181,6 +181,7 @@ public class MenuBar extends JFrame {
         final JRadioButton snake = new JRadioButton("Змея");
         final JRadioButton mowgli = new JRadioButton("Маугли");
         final JRadioButton green = new JRadioButton("Зеленый фон");
+        green.setSelected(true);
         ButtonGroup groupBackground = new ButtonGroup();
         groupBackground.add(waterfall);
         groupBackground.add(river);
@@ -227,9 +228,6 @@ public class MenuBar extends JFrame {
                                     gameGUI.setImageString(gameGUI.getImages() + "mowgli.jpg");
                                 } else {
                                     if (green.isSelected()) {
-                                        gameGUI.setImageString(null);
-                                        gameGUI.setColorBackground(new Color(0, 128, 0));
-                                    } else {
                                         gameGUI.setImageString(null);
                                     }
                                 }
@@ -315,7 +313,6 @@ public class MenuBar extends JFrame {
             list.setSelectedIndex(index);
             list.ensureIndexIsVisible(index);
         }
-
         final JPanel listPanel = new JPanel();
         listPanel.setLayout(new BorderLayout());
         listPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -323,6 +320,10 @@ public class MenuBar extends JFrame {
         final JButton ok = new JButton("Ок");
         final JButton remove = new JButton("Убрать из списка");
         final JButton clear = new JButton("Очистить весь список");
+        if (listModel.isEmpty()) {
+            remove.setEnabled(false);
+            clear.setEnabled(false);
+        }
         ok.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -373,9 +374,9 @@ public class MenuBar extends JFrame {
 
     private void messageExit() {
         final JDialog dialog = new JDialog(this, "Вы уверены?", true);
-        dialog.setSize(400, 120);
+        dialog.setSize(300, 120);
         JLabel labelExit = new JLabel("Вы уверены, что хотите выйти из игры?");
-        labelExit.setBorder(new EmptyBorder(10, 50, 0, 0));
+        labelExit.setBorder(new EmptyBorder(10, 25, 0, 0));
         JButton yes = new JButton("Да");
         JButton no = new JButton("Нет");
         yes.addActionListener(new ActionListener() {
